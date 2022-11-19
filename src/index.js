@@ -92,8 +92,8 @@ async function getDiscordEvents() {
 
 async function createOrUpdateDiscordEvent(event, discordEvents) {
   const timestamp = event.created.valueOf();
-  if (discordEvents[timestamp]) {
-    await axios.patch(`https://discord.com/api/guilds/${DISCORD_GUILD_ID}/scheduled-events/${discordEvents[timestamp].id}`, {
+  if (discordEvents.has(timestamp)) {
+    await axios.patch(`https://discord.com/api/guilds/${DISCORD_GUILD_ID}/scheduled-events/${discordEvents.get(timestamp).id}`, {
       name: event.summary,
       scheduled_start_time: event.start.toISOString(),
       scheduled_end_time: event.end.toISOString(),
@@ -122,14 +122,12 @@ async function createOrUpdateDiscordEvent(event, discordEvents) {
   }
 }
 
-const getDiscordEventsById = (events) => events.reduce((object, event) => {
+const getDiscordEventsById = (events) => events.reduce((map, event) => {
   const match = event.description.match(/\[(\d+)\]/);
-  if (!match) return object;
-  return {
-    ...object,
-    [match[1]]: event,
-  };
-}, {});
+  if (!match) return map;
+  map.set(Number(match[1]), event);
+  return map;
+}, new Map());
 
 async function sync() {
   const googleEvents = await getGoogleEvents();
@@ -140,7 +138,7 @@ async function sync() {
 
   const discordEvents = await getDiscordEvents();
   const discordEventsById = getDiscordEventsById(discordEvents);
-  await waterfall(googleEvents, async (event) => await createOrUpdateDiscordEvent(event, discordEventsById));
+  await waterfall(googleEvents, (event) => createOrUpdateDiscordEvent(event, discordEventsById));
 }
 
 sync();
