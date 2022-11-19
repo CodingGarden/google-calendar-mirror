@@ -9,6 +9,8 @@ const {
   TWITCH_CATEGORY_ID,
   TWITCH_OAUTH_TOKEN,
   TWITCH_CLIENT_ID,
+  DISCORD_TOKEN,
+  DISCORD_GUILD_ID,
 } = process.env;
 
 async function getGoogleEvents() {
@@ -79,11 +81,66 @@ async function waterfall(promises, cb) {
   }, Promise.resolve());
 }
 
+async function getDiscordEvents() {
+  const { data } = await axios.get(`https://discord.com/api/guilds/${DISCORD_GUILD_ID}/scheduled-events`, {
+    headers: {
+      authorization: `Bot ${DISCORD_TOKEN}`,
+    },
+  });
+  return data;
+}
+
+async function createOrUpdateDiscordEvent(event, discordEvents) {
+  const timestamp = event.created.valueOf();
+  if (discordEvents[timestamp]) {
+    await axios.patch(`https://discord.com/api/guilds/${DISCORD_GUILD_ID}/scheduled-events/${discordEvents[timestamp].id}`, {
+      name: event.summary,
+      scheduled_start_time: event.start.toISOString(),
+      scheduled_end_time: event.end.toISOString(),
+      description: `[${event.created.valueOf()}]`,
+    }, {
+      headers: {
+        authorization: `Bot ${DISCORD_TOKEN}`,
+      },
+    });
+  } else {
+    await axios.post(`https://discord.com/api/guilds/${DISCORD_GUILD_ID}/scheduled-events`, {
+      name: event.summary,
+      scheduled_start_time: event.start.toISOString(),
+      scheduled_end_time: event.end.toISOString(),
+      privacy_level: 2,
+      entity_type: 3,
+      description: `[${event.created.valueOf()}]`,
+      entity_metadata: {
+        location: 'https://twitch.tv/codinggarden',
+      },
+    }, {
+      headers: {
+        authorization: `Bot ${DISCORD_TOKEN}`,
+      },
+    });
+  }
+}
+
+const getDiscordEventsById = (events) => events.reduce((object, event) => {
+  const match = event.description.match(/\[(\d+)\]/);
+  if (!match) return object;
+  return {
+    ...object,
+    [match[1]]: event,
+  };
+}, {});
+
 async function sync() {
   const googleEvents = await getGoogleEvents();
+
   const twitchEvents = await getTwitchEvents();
   await waterfall(twitchEvents.segments || [], removeTwitchEvent);
   await waterfall(googleEvents, createTwitchEvent);
+
+  const discordEvents = await getDiscordEvents();
+  const discordEventsById = getDiscordEventsById(discordEvents);
+  await waterfall(googleEvents, async (event) => await createOrUpdateDiscordEvent(event, discordEventsById));
 }
 
 sync();
