@@ -1,10 +1,12 @@
-# Google Calendar -> Twitch Schedule Mirror
+# Google Calendar -> Twitch & Discord Schedule Mirror
 
-Update a Twitch schedule based on a Google calendar link.
+Update a Twitch schedule and add Discord events based on a Google calendar link.
 
 This script will:
 * Remove all upcoming events on your Twitch Schedule
 * Create an upcoming event on your Twitch Schedule for every upcoming event on the given Google calendar
+* Find Discord events that have `[CREATION_TIMESTAMP]` in their description and edit them according to the Google calendar
+* Create Discord events for the Google calendar events that were not found
 
 > This node.js script requires at least [Node.js version 14](https://nodejs.org/en/).
 
@@ -15,6 +17,8 @@ This script will:
 | TWITCH_CATEGORY_ID | The category to set for every scheduled stream |
 | TWITCH_OAUTH_TOKEN | Must have `channel:manage:schedule` scope for the channel you are syncing to |
 | TWITCH_CLIENT_ID | Your twitch client id |
+| DISCORD_TOKEN | Your Discord bot token (the bot should have the "Manage Events" permission) |
+| DISCORD_GUILD_ID | The server ID to add the events to |
 
 ## Install Dependencies
 
@@ -25,5 +29,5 @@ npm install
 ## Run
 
 ```sh
-node src/index.js
+npm start
 ```
