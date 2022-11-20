@@ -17,7 +17,7 @@ This script will:
 | TWITCH_CATEGORY_ID | The category to set for every scheduled stream |
 | TWITCH_OAUTH_TOKEN | Must have `channel:manage:schedule` scope for the channel you are syncing to |
 | TWITCH_CLIENT_ID | Your twitch client id |
-| DISCORD_TOKEN | Your Discord bot token (the bot should have the "Manage Events" permission) |
+| DISCORD_TOKEN | Your Discord bot token (the bot should have the `Manage Events` permission) |
 | DISCORD_GUILD_ID | The server ID to add the events to |
 
 ## Install Dependencies
