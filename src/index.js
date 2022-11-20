@@ -129,8 +129,19 @@ const getDiscordEventsById = (events) => events.reduce((map, event) => {
   return map;
 }, new Map());
 
+const deleteOrKeepDiscordEvent = async ([id, event], googleEventsIds) => {
+  if (!googleEventsIds.includes(id)) {
+    await axios.delete(`https://discord.com/api/guilds/${DISCORD_GUILD_ID}/scheduled-events/${event.id}`, {
+      headers: {
+        authorization: `Bot ${DISCORD_TOKEN}`,
+      },
+    });
+  }
+}
+
 async function sync() {
   const googleEvents = await getGoogleEvents();
+  const googleEventsIds = googleEvents.map(event => event.created.valueOf());
 
   const twitchEvents = await getTwitchEvents();
   await waterfall(twitchEvents.segments || [], removeTwitchEvent);
@@ -138,7 +149,9 @@ async function sync() {
 
   const discordEvents = await getDiscordEvents();
   const discordEventsById = getDiscordEventsById(discordEvents);
+  await waterfall([...discordEventsById.entries()], (event) => deleteOrKeepDiscordEvent(event, googleEventsIds));
   await waterfall(googleEvents, (event) => createOrUpdateDiscordEvent(event, discordEventsById));
+
 }
 
 sync();
