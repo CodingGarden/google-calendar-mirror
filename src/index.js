@@ -91,13 +91,12 @@ async function getDiscordEvents() {
 }
 
 async function createOrUpdateDiscordEvent(event, discordEvents) {
-  const timestamp = event.created.valueOf();
-  if (discordEvents.has(timestamp)) {
-    await axios.patch(`https://discord.com/api/guilds/${DISCORD_GUILD_ID}/scheduled-events/${discordEvents.get(timestamp).id}`, {
+  if (discordEvents.has(event.uid)) {
+    await axios.patch(`https://discord.com/api/guilds/${DISCORD_GUILD_ID}/scheduled-events/${discordEvents.get(event.uid).id}`, {
       name: event.summary,
       scheduled_start_time: event.start.toISOString(),
       scheduled_end_time: event.end.toISOString(),
-      description: `[${event.created.valueOf()}]`,
+      description: `[${event.uid}]`,
     }, {
       headers: {
         authorization: `Bot ${DISCORD_TOKEN}`,
@@ -110,7 +109,7 @@ async function createOrUpdateDiscordEvent(event, discordEvents) {
       scheduled_end_time: event.end.toISOString(),
       privacy_level: 2,
       entity_type: 3,
-      description: `[${event.created.valueOf()}]`,
+      description: `[${event.uid}]`,
       entity_metadata: {
         location: 'https://twitch.tv/codinggarden',
       },
@@ -123,9 +122,9 @@ async function createOrUpdateDiscordEvent(event, discordEvents) {
 }
 
 const getDiscordEventsById = (events) => events.reduce((map, event) => {
-  const match = event.description.match(/\[(\d+)\]/);
+  const match = event.description.match(/\[(\w{26}@google\.com)\]/);
   if (!match) return map;
-  map.set(Number(match[1]), event);
+  map.set(match[1], event);
   return map;
 }, new Map());
 
@@ -141,7 +140,7 @@ const deleteOrKeepDiscordEvent = async ([id, event], googleEventsIds) => {
 
 async function sync() {
   const googleEvents = await getGoogleEvents();
-  const googleEventsIds = googleEvents.map(event => event.created.valueOf());
+  const googleEventsIds = googleEvents.map(event => event.uid);
 
   const twitchEvents = await getTwitchEvents();
   await waterfall(twitchEvents.segments || [], removeTwitchEvent);
