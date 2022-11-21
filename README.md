@@ -5,8 +5,9 @@ Update a Twitch schedule and add Discord events based on a Google calendar link.
 This script will:
 * Remove all upcoming events on your Twitch Schedule
 * Create an upcoming event on your Twitch Schedule for every upcoming event on the given Google calendar
-* Find Discord events that have `[CREATION_TIMESTAMP]` in their description and edit them according to the Google calendar
+* Find Discord events that have `[EVENT_UID]` in their description and edit them according to the Google calendar
 * Create Discord events for the Google calendar events that were not found
+* Delete Discord events that have `[EVENT_UID]`s that are not in the Google calendar (old deleted events, probably)
 
 > This node.js script requires at least [Node.js version 14](https://nodejs.org/en/).
 
