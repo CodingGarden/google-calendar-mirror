@@ -1,7 +1,7 @@
 {
-  "name": "google-calendar-twitch-schedule-mirror",
+  "name": "google-calendar-mirror",
   "version": "1.0.0",
-  "description": "Update a Twitch schedule based on a Google calendar link",
+  "description": "Update a Twitch schedule and Discord events based on a Google calendar link",
   "main": "index.js",
   "engines": {
     "node": ">=14.0.0"

@@ -1,4 +1,4 @@
-# Google Calendar -> Twitch & Discord Schedule Mirror
+# Google Calendar -> Twitch schedule & Discord events Mirror
 
 Update a Twitch schedule and add Discord events based on a Google calendar link.
 
