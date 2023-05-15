@@ -22,7 +22,7 @@ async function sync() {
 
   if (!platform || platform === 'twitch') {
     const twitchEvents = await getTwitchEvents();
-    await waterfall(twitchEvents.segments || [], removeTwitchEvent);
+    await waterfall(twitchEvents?.segments || [], removeTwitchEvent);
     await waterfall(googleEvents, createTwitchEvent);
   }
 
@@ -30,8 +30,14 @@ async function sync() {
     const googleEventsIds = googleEvents.map(event => event.uid);
     const discordEvents = await getDiscordEvents();
     const discordEventsById = getDiscordEventsById(discordEvents);
-    await waterfall([...discordEventsById.entries()], (event) => deleteOrKeepDiscordEvent(event, googleEventsIds));
-    await waterfall(googleEvents, (event) => createOrUpdateDiscordEvent(event, discordEventsById));
+    await waterfall([...discordEventsById.entries()], async (event) => {
+      await deleteOrKeepDiscordEvent(event, googleEventsIds);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    });
+    await waterfall(googleEvents, async (event) => {
+      await createOrUpdateDiscordEvent(event, discordEventsById);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    });
   }
 }
 
